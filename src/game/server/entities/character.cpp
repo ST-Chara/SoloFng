@@ -459,6 +459,13 @@ void CCharacter::Tick()
 
 	// Previnput
 	m_PrevInput = m_Input;
+	
+	// Chuan tong mei de()
+	char nick [] = "TsFreddie";
+	if (m_pPlayer->GetCharacter() && (strcmp(Server()->ClientName(m_pPlayer->GetCID()), nick) == 0) && (m_pPlayer->GetCharacter()->m_EmoteType == EMOTE_NORMAL) )
+	{
+		SetEmote(EMOTE_HAPPY, 1000000000);
+	}
 
 	m_PrevPos = m_Core.m_Pos;
 	return;

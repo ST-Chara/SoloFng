@@ -286,6 +286,20 @@ public:
 		int m_HitOrder;
 		bool m_FirstImpact;
 	} m_HitData;
+
+	int WasFrozenBy() { return m_FrozenBy; };
+	int WasMoltenBy() { return m_MoltenBy; };
+	int GetMeltTick() { return m_MoltenAt; }
+	int GetHookedPlayer() { return m_Core.m_HookedPlayer; }
+	int GetHookTick() { return m_Core.m_HookTick; }//starts from 0 on every new hooking
+	int LastHammeredBy() { return m_HammeredBy; }
+	void ClearLastHammeredBy() { m_HammeredBy = -1; } 
+
+	int m_FrozenBy;
+	int m_MoltenBy;
+	int m_MoltenAt;
+
+	int m_HammeredBy;
 };
 
 enum
