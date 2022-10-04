@@ -53,12 +53,14 @@ void CHammer::Fire(vec2 Direction)
 		Temp = ClampVel(pTarget->m_MoveRestrictions, Temp);
 		Temp -= pTarget->Core()->m_Vel;
 
-		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, -1,
 			ClientID, WEAPON_HAMMER, GetWeaponID(), false);
 
 		GameServer()->Antibot()->OnHammerHit(ClientID);
 
 		Hits++;
+
+		pTarget->m_HammeredBy = ClientID;
 	}
 
 	// if we Hit anything, we have to wait for the reload

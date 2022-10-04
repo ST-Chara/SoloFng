@@ -981,6 +981,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   gamemodes/lts.h
   gamemodes/solofng.cpp
   gamemodes/solofng.h
+  gamemodes/openfng.cpp
+  gamemodes/openfng.h
   gamemodes/tdm.cpp
   gamemodes/tdm.h
   gameworld.cpp
@@ -996,6 +998,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapons.h
   weapons/explodinglaser.cpp
   weapons/explodinglaser.h
+  weapons/freezegun.cpp
+  weapons/freezegun.h
   weapons/grenade.cpp
   weapons/grenade.h
   weapons/hammer.cpp

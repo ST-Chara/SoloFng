@@ -1,0 +1,4 @@
+# copy openfng room config
+exec room_config/modes/openfng.rcfg
+
+player_slots 6

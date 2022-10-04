@@ -2,8 +2,8 @@
 /* for more information. If you are missing that file, acquire a complete */
 /* release at teeworlds.com.                                              */
 
-#ifndef GAME_SERVER_GAMEMODES_SOLOFNG_H
-#define GAME_SERVER_GAMEMODES_SOLOFNG_H
+#ifndef GAME_SERVER_GAMEMODES_OPENFNG_H
+#define GAME_SERVER_GAMEMODES_OPENFNG_H
 
 #include <game/server/gamecontroller.h>
 #include "tdm.h"
@@ -39,7 +39,7 @@ public:
 
 // handles broadcasts
 
-class CBroadcasterSolo
+class CBroadcaster
 {
 private:
 	char m_aBroadcast[MAX_CLIENTS][MAX_BROADCAST];
@@ -51,8 +51,8 @@ private:
 
 	class CGameContext *m_pGS;
 public:
-	CBroadcasterSolo(class CGameContext *pGameServer);
-	virtual ~CBroadcasterSolo();
+	CBroadcaster(class CGameContext *pGameServer);
+	virtual ~CBroadcaster();
 
 	void SetDef(const char *pText);
 	void Update(int Cid, const char *pText, int Lifespan);
@@ -60,7 +60,7 @@ public:
 	void Operate();
 };
 
-class CGameControllerSoloFNG : public IGameController
+class CGameControllerOpenFNG : public IGameController
 {
 private:
 	int m_aFrozenBy[MAX_CLIENTS];
@@ -68,7 +68,7 @@ private:
 	int m_aLastInteraction[MAX_CLIENTS]; //keep track of the last hostile interaction (hook/hammer), maps clientids to clientids [4] = 7 ^= cid 4 was last hooked/hammered by cid 7
 
 	//class CScoreDisplay m_ScoreDisplay;
-	class CBroadcasterSolo m_Broadcast;
+	class CBroadcaster m_Broadcast;
 
 	char m_aRagequitAddr[128];
 
@@ -89,8 +89,8 @@ private:
 	void DoScoreDisplays();
 	void DoRagequit();
 public:
-	CGameControllerSoloFNG();
-	virtual ~CGameControllerSoloFNG();
+	CGameControllerOpenFNG();
+	virtual ~CGameControllerOpenFNG();
 
 	//virtual bool CanBeMovedOnBalance(int ClientID);
 	virtual void OnPreTick();

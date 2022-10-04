@@ -1,0 +1,5 @@
+# copy solofng room config
+exec room_config/modes/solofng.rcfg
+
+# solofng1v1 config
+player_slots 2

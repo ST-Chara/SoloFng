@@ -1229,16 +1229,6 @@ void CCharacter::HandleTiles(int Index)
 	if(Controller()->OnInternalCharacterTile(this, Index))
 		return;
 
-	// freeze
-	if(((m_TileIndex == TILE_FREEZE) || (m_TileFIndex == TILE_FREEZE)) && !m_Super && !m_DeepFreeze)
-	{
-		Freeze(3);
-	}
-	else if(((m_TileIndex == TILE_UNFREEZE) || (m_TileFIndex == TILE_UNFREEZE)) && !m_DeepFreeze)
-	{
-		UnFreeze();
-	}
-
 	// deep freeze
 	if(((m_TileIndex == TILE_DFREEZE) || (m_TileFIndex == TILE_DFREEZE)) && !m_Super && !m_DeepFreeze)
 	{
@@ -1446,11 +1436,6 @@ void CCharacter::HandleTiles(int Index)
 		GameServer()->Collision()->m_pSwitchers[GameServer()->Collision()->GetSwitchNumber(MapIndex)].m_Status[Team()] = false;
 		GameServer()->Collision()->m_pSwitchers[GameServer()->Collision()->GetSwitchNumber(MapIndex)].m_EndTick[Team()] = 0;
 		GameServer()->Collision()->m_pSwitchers[GameServer()->Collision()->GetSwitchNumber(MapIndex)].m_Type[Team()] = TILE_SWITCHCLOSE;
-	}
-	else if(GameServer()->Collision()->IsSwitch(MapIndex) == TILE_FREEZE && Team() != TEAM_SUPER)
-	{
-		if(GameServer()->Collision()->GetSwitchNumber(MapIndex) == 0 || GameServer()->Collision()->m_pSwitchers[GameServer()->Collision()->GetSwitchNumber(MapIndex)].m_Status[Team()])
-			Freeze(GameServer()->Collision()->GetSwitchDelay(MapIndex));
 	}
 	else if(GameServer()->Collision()->IsSwitch(MapIndex) == TILE_DFREEZE && Team() != TEAM_SUPER)
 	{
@@ -1810,8 +1795,6 @@ void CCharacter::DDRacePostCoreTick()
 
 	m_FrozenLastTick = false;
 
-	if(m_DeepFreeze && !m_Super)
-		Freeze(3);
 
 	if(m_Core.m_Jumps == 0 && !m_Super)
 		m_Core.m_Jumped = 3;
@@ -1896,19 +1879,15 @@ void CCharacter::SetAllowFrozenWeaponSwitch(bool Allow)
 	m_FreezeWeaponSwitch = Allow;
 }
 
-bool CCharacter::Freeze(float Seconds, bool BlockHoldFire)
+bool CCharacter::Freeze(float Seconds, int By, bool BlockHoldFire)
 {
-	int Ticks = round_to_int(Seconds * Server()->TickSpeed());
-	m_FreezeAllowHoldFire = !BlockHoldFire;
-	if(Seconds <= 0 || m_Super || m_FreezeTime > Ticks)
-		return false;
-	if(m_FreezeTime == 0 || m_FreezeTick < Server()->Tick() - Server()->TickSpeed())
-	{
-		m_FreezeTime = Ticks;
-		m_FreezeTick = Server()->Tick();
-		return true;
-	}
-	return false;
+	if (Seconds < 0)
+		Seconds = 0;
+	if (By != -1 && Seconds > 0)
+		m_FrozenBy = By;
+	m_FreezeTime = Seconds*Server()->TickSpeed();
+	m_FreezeTick = Server()->Tick();
+	return true;
 }
 
 bool CCharacter::IsFrozen()

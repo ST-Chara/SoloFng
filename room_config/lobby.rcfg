@@ -1,4 +1,7 @@
 # lobby override config
 
+add_vote "OpenFng" "gametype openfng"
+add_vote "SoloFng" "gametype solofng"
+
 # no warmup for room 0
 warmup 0

@@ -12,7 +12,7 @@
 #include <game/server/weapons.h>
 #include <game/server/entities/textentity.h>
 
-#include "solofng.h"
+#include "openfng.h"
 
 #define TS Server()->TickSpeed()
 #define TICK Server()->Tick()
@@ -33,22 +33,22 @@
 #endif
 
 
-CGameControllerSoloFNG::CGameControllerSoloFNG()
+CGameControllerOpenFNG::CGameControllerOpenFNG()
 : IGameController(), m_Broadcast(GS)
 {
-	m_pGameType = "solofng";
-	m_GameFlags = IGF_SUDDENDEATH;
+	m_pGameType = "openfng";
+	m_GameFlags = IGF_TEAMS | IGF_SUDDENDEATH;
 	m_aCltMask[0] = m_aCltMask[1] = 0;
 
 	Reset();
 }
 
-CGameControllerSoloFNG::~CGameControllerSoloFNG()
+CGameControllerOpenFNG::~CGameControllerOpenFNG()
 {
 	Reset(true);
 }
 
-void CGameControllerSoloFNG::Reset(bool Destruct)
+void CGameControllerOpenFNG::Reset(bool Destruct)
 {
 	for(int i = 0; i < MAX_CLIENTS; i++)
 		m_aFrozenBy[i] = m_aMoltenBy[i] = m_aLastInteraction[i] = -1;
@@ -61,7 +61,7 @@ void CGameControllerSoloFNG::Reset(bool Destruct)
 	m_aCltMask[0] = m_aCltMask[1] = 0;
 }
 
-void CGameControllerSoloFNG::OnPreTick()
+void CGameControllerOpenFNG::OnPreTick()
 {
 	if ((IsEndRound() || IsEndMatch()) || m_Warmup)
 		return;
@@ -78,7 +78,7 @@ void CGameControllerSoloFNG::OnPreTick()
 	DoRagequit();
 }
 
-bool CGameControllerSoloFNG::DoEmpty()
+bool CGameControllerOpenFNG::DoEmpty()
 {
 	bool Empty = true;
 
@@ -93,7 +93,7 @@ bool CGameControllerSoloFNG::DoEmpty()
 	return Empty;
 }
 
-void CGameControllerSoloFNG::DoHookers()
+void CGameControllerOpenFNG::DoHookers()
 {
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
@@ -143,36 +143,47 @@ void CGameControllerSoloFNG::DoHookers()
 	}
 }
 
-bool CGameControllerSoloFNG::OnCharacterTile(class CCharacter *pChr, int MapIndex)
+bool CGameControllerOpenFNG::OnCharacterTile(class CCharacter *pChr, int MapIndex)
 {
 	DoHookers();
 
 	if (!pChr)
 		return false;
 	int Col = GS->Collision()->GetTileIndex(MapIndex);
-	if(pChr->IsFrozen())
+	if(pChr->IsFrozen() && PLAYER(pChr->LastHammeredBy()))
 	{
+		int Points = 0;
 		if(Col == 8)
 		{
+			Points = 3;
 			new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+3", 3.0F);
-			if(PLAYER(pChr->LastHammeredBy()))
-				PLAYER(pChr->LastHammeredBy())->m_Score+=3;
 			pChr->Die(pChr->LastHammeredBy(), WEAPON_NINJA);
 		}
 
 		if(Col == 9 || Col == 10)
 		{
-			new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+5", 3.0F);
-			if(PLAYER(pChr->LastHammeredBy()))
-				PLAYER(pChr->LastHammeredBy())->m_Score+=5;
+			if((PLAYER(pChr->LastHammeredBy())->GetTeam() == TEAM_RED && Col == 9) || (PLAYER(pChr->LastHammeredBy())->GetTeam() == TEAM_BLUE && Col == 10))
+			{
+				new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+5", 3.0F);
+				Points = 5;
+				dbg_msg("55","5555");
+			}
+			else
+			{
+				new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "-5", 3.0F);
+				Points = -5;
+				if(CHAR(pChr->LastHammeredBy()))
+					CHAR(pChr->LastHammeredBy())->Freeze(6);
+			}
 			pChr->Die(pChr->LastHammeredBy(), WEAPON_NINJA);
 		}
+		PLAYER(pChr->LastHammeredBy())->m_Score+=Points;
 	}
 	else
 		pChr->Die(-1, WEAPON_WORLD);
 }
 
-void CGameControllerSoloFNG::DoScoreDisplays()
+void CGameControllerOpenFNG::DoScoreDisplays()
 {
 	/*FORTEAMS(i)
 		m_ScoreDisplay.Update(i, m_aTeamscore[i]);
@@ -180,7 +191,7 @@ void CGameControllerSoloFNG::DoScoreDisplays()
 	m_ScoreDisplay.Operate(); */
 }
 
-void CGameControllerSoloFNG::DoBroadcasts(bool ForceSend)
+void CGameControllerOpenFNG::DoBroadcasts(bool ForceSend)
 {
 	if (!(IsEndRound() || IsEndMatch()))
 		return;
@@ -193,7 +204,7 @@ void CGameControllerSoloFNG::DoBroadcasts(bool ForceSend)
 	m_Broadcast.Operate();
 }
 
-void CGameControllerSoloFNG::DoRagequit()
+void CGameControllerOpenFNG::DoRagequit()
 {
 	if (*m_aRagequitAddr)
 	{
@@ -214,7 +225,7 @@ void CGameControllerSoloFNG::DoRagequit()
 	}
 }
 
-void CGameControllerSoloFNG::HandleFreeze(int Killer, int Victim)
+void CGameControllerOpenFNG::HandleFreeze(int Killer, int Victim)
 {
 	CCharacter *pVictim = CHAR(Victim);
 	if (!pVictim) // for odd reasons, this can happen (confirmed by segfault). didn't yet track down why 
@@ -257,7 +268,7 @@ void CGameControllerSoloFNG::HandleFreeze(int Killer, int Victim)
 	}
 }
 
-void CGameControllerSoloFNG::HandleMelt(int Melter, int Meltee)
+void CGameControllerOpenFNG::HandleMelt(int Melter, int Meltee)
 {
 	CCharacter *pMeltee = CHAR(Meltee);
 	if (!pMeltee) //due to HandleFreeze, i suspect this COULD also possibly happen. 
@@ -292,7 +303,7 @@ void CGameControllerSoloFNG::HandleMelt(int Melter, int Meltee)
 	}
 }
 
-void CGameControllerSoloFNG::HandleSacr(int Killer, int Victim, int ShrineTeam)
+void CGameControllerOpenFNG::HandleSacr(int Killer, int Victim, int ShrineTeam)
 {//assertion: Killer >= 0, victim anyways
 	CCharacter *pVictim = CHAR(Victim);
 
@@ -341,7 +352,7 @@ void CGameControllerSoloFNG::HandleSacr(int Killer, int Victim, int ShrineTeam)
 	}
 }
 
-void CGameControllerSoloFNG::SendFreezeKill(int Killer, int Victim, int Weapon)
+void CGameControllerOpenFNG::SendFreezeKill(int Killer, int Victim, int Weapon)
 {
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "frzkill k:%d:'%s' v:%d:'%s' w:%d",
@@ -359,7 +370,7 @@ void CGameControllerSoloFNG::SendFreezeKill(int Killer, int Victim, int Weapon)
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 }
 /*
-bool CGameControllerSoloFNG::CanBeMovedOnBalance(int ClientID)
+bool CGameControllerOpenFNG::CanBeMovedOnBalance(int ClientID)
 {
 
 	if (!IGameController::CanBeMovedOnBalance(ClientID))
@@ -370,7 +381,7 @@ bool CGameControllerSoloFNG::CanBeMovedOnBalance(int ClientID)
 	
 }
 */
-int CGameControllerSoloFNG::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pUnusedKiller, int Weapon)
+int CGameControllerOpenFNG::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pUnusedKiller, int Weapon)
 {
 	m_aCltMask[pVictim->GetPlayer()->GetTeam()&1] &= ~(1<<pVictim->GetPlayer()->GetCID());
 
@@ -384,7 +395,7 @@ int CGameControllerSoloFNG::OnCharacterDeath(class CCharacter *pVictim, class CP
 }
 
 
-void CGameControllerSoloFNG::OnCharacterSpawn(class CCharacter *pChr)
+void CGameControllerOpenFNG::OnCharacterSpawn(class CCharacter *pChr)
 {
 	m_aCltMask[pChr->GetPlayer()->GetTeam()&1] |= (1<<pChr->GetPlayer()->GetCID());
 	
@@ -402,12 +413,12 @@ void CGameControllerSoloFNG::OnCharacterSpawn(class CCharacter *pChr)
 	m_aLastInteraction[pChr->GetPlayer()->GetCID()] = -1;
 }
 
-void CGameControllerSoloFNG::ResetMatch()
+void CGameControllerOpenFNG::ResetMatch()
 {
 	Reset();
 }
 
-void CGameControllerSoloFNG::Snap(int SnappingClient)
+void CGameControllerOpenFNG::Snap(int SnappingClient)
 {
 	IGameController::Snap(SnappingClient);
 
@@ -424,7 +435,7 @@ void CGameControllerSoloFNG::Snap(int SnappingClient)
 	//pGameDataObj->m_FlagCarrierBlue = 0;
 }
 
-bool CGameControllerSoloFNG::OnEntity(int Index, vec2 Pos, int Layer, int Flags, int Number)
+bool CGameControllerOpenFNG::OnEntity(int Index, vec2 Pos, int Layer, int Flags, int Number)
 {
 	switch(Index)
 	{
@@ -441,7 +452,7 @@ bool CGameControllerSoloFNG::OnEntity(int Index, vec2 Pos, int Layer, int Flags,
 	return false;
 }
 
-bool CGameControllerSoloFNG::CanJoinTeam(int Team, int NotThisID, bool S)
+bool CGameControllerOpenFNG::CanJoinTeam(int Team, int NotThisID, bool S)
 {
 	int Can = IGameController::CanJoinTeam(Team, NotThisID, S);
 	if (!Can)
@@ -548,18 +559,18 @@ void CScoreDisplay::Operate()
 
 */
 
-CBroadcasterSolo::CBroadcasterSolo(class CGameContext *pGameServer)
+CBroadcaster::CBroadcaster(class CGameContext *pGameServer)
 : m_pGS(pGameServer)
 {
 	Reset();
 }
 
-CBroadcasterSolo::~CBroadcasterSolo()
+CBroadcaster::~CBroadcaster()
 {
 	Reset();
 }
 
-void CBroadcasterSolo::SetDef(const char *pText)
+void CBroadcaster::SetDef(const char *pText)
 {
 	if (str_comp(m_aDefBroadcast, pText) != 0)
 	{
@@ -571,7 +582,7 @@ void CBroadcasterSolo::SetDef(const char *pText)
 	}
 }
 
-void CBroadcasterSolo::Update(int Cid, const char *pText, int Lifespan)
+void CBroadcaster::Update(int Cid, const char *pText, int Lifespan)
 {
 	if (Cid < 0) // all
 	{
@@ -589,7 +600,7 @@ void CBroadcasterSolo::Update(int Cid, const char *pText, int Lifespan)
 	}
 }
 
-void CBroadcasterSolo::Reset()
+void CBroadcaster::Reset()
 {
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{
@@ -600,7 +611,7 @@ void CBroadcasterSolo::Reset()
 	m_aDefBroadcast[0] = '\0';
 }
 
-void CBroadcasterSolo::Operate()
+void CBroadcaster::Operate()
 {
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{

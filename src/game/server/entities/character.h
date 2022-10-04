@@ -176,7 +176,7 @@ private:
 public:
 	void FillAntibot(CAntibotCharacterData *pData);
 	void SetDisable(bool Pause);
-	bool Freeze(float Time, bool BlockHoldFire = false);
+	bool Freeze(float Time, int By = -1, bool BlockHoldFire = false);
 	bool IsFrozen();
 	bool IsDeepFrozen();
 	bool UnFreeze();
