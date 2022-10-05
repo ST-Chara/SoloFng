@@ -12,6 +12,8 @@ bool CFreezeGun::LaserHit(CLaser *pLaser, vec2 HitPoint, CCharacter *pHit, bool 
         pHit->Freeze(9, pLaser->GetOwner());
 		pHit->m_HammeredBy = pLaser->GetOwner();
 		pLaser->Controller()->SendKillMsg(pLaser->GetOwner(), pHit->GetPlayer()->GetCID(), WEAPON_LASER, 0);
+		pLaser->GameWorld()->CreateDeath(pHit->GetPos(), pHit->GetPlayer()->GetCID());
+		pLaser->GameWorld()->CreateSound(pLaser->GameServer()->GetPlayerChar(pLaser->GetOwner())->GetPos(), SOUND_HIT);
 		return true;
 	}
 	return false;

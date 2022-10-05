@@ -154,17 +154,25 @@ bool CGameControllerSoloFNG::OnCharacterTile(class CCharacter *pChr, int MapInde
 	{
 		if(Col == 8)
 		{
-			new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+3", 3.0F);
+			if(CHAR(pChr->LastHammeredBy()))
+				new CTextEntity(GW, CHAR(pChr->LastHammeredBy())->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+3", 3.0F);
 			if(PLAYER(pChr->LastHammeredBy()))
+			{
+				GW->CreateSound(CHAR(pChr->LastHammeredBy())->GetPos(), SOUND_CTF_CAPTURE);
 				PLAYER(pChr->LastHammeredBy())->m_Score+=3;
+			}
 			pChr->Die(pChr->LastHammeredBy(), WEAPON_NINJA);
 		}
 
 		if(Col == 9 || Col == 10)
 		{
-			new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+5", 3.0F);
+			if(CHAR(pChr->LastHammeredBy()))
+				new CTextEntity(GW, CHAR(pChr->LastHammeredBy())->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+5", 3.0F);
 			if(PLAYER(pChr->LastHammeredBy()))
+			{
+				GW->CreateSound(CHAR(pChr->LastHammeredBy())->GetPos(), SOUND_CTF_CAPTURE);
 				PLAYER(pChr->LastHammeredBy())->m_Score+=5;
+			}
 			pChr->Die(pChr->LastHammeredBy(), WEAPON_NINJA);
 		}
 	}

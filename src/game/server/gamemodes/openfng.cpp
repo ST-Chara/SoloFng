@@ -156,7 +156,9 @@ bool CGameControllerOpenFNG::OnCharacterTile(class CCharacter *pChr, int MapInde
 		if(Col == 8)
 		{
 			Points = 3;
-			new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+3", 3.0F);
+			if(CHAR(pChr->LastHammeredBy()))
+				new CTextEntity(GW, CHAR(pChr->LastHammeredBy())->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+3", 3.0F);
+			GW->CreateSound(CHAR(pChr->LastHammeredBy())->GetPos(), SOUND_CTF_CAPTURE);
 			pChr->Die(pChr->LastHammeredBy(), WEAPON_NINJA);
 		}
 
@@ -164,9 +166,10 @@ bool CGameControllerOpenFNG::OnCharacterTile(class CCharacter *pChr, int MapInde
 		{
 			if((PLAYER(pChr->LastHammeredBy())->GetTeam() == TEAM_RED && Col == 9) || (PLAYER(pChr->LastHammeredBy())->GetTeam() == TEAM_BLUE && Col == 10))
 			{
-				new CTextEntity(GW, pChr->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+5", 3.0F);
+				if(CHAR(pChr->LastHammeredBy()))
+					new CTextEntity(GW, CHAR(pChr->LastHammeredBy())->GetPos(), CTextEntity::TYPE_LASER, CTextEntity::SIZE_NORMAL, CTextEntity::ALIGN_LEFT, "+5", 3.0F);
 				Points = 5;
-				dbg_msg("55","5555");
+				GW->CreateSound(CHAR(pChr->LastHammeredBy())->GetPos(), SOUND_CTF_CAPTURE);
 			}
 			else
 			{

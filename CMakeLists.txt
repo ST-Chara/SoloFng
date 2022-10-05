@@ -602,8 +602,7 @@ set(EXPECTED_DATA
   languages/turkish.txt
   languages/ukrainian.txt
   maps/license.txt
-  maps/mega_std_collection.map
-  maps/mega_std_collection.map.cfg
+  maps/openfng5-Beat.map
   maps7/license.txt
   maps7/mega_std_collection.map
   wordlist.txt
