@@ -966,24 +966,15 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   gamecontroller.cpp
   gamecontroller.h
   gamemodes.h
-  gamemodes/catch.cpp
-  gamemodes/catch.h
-  gamemodes/ctf.cpp
-  gamemodes/ctf.h
-  gamemodes/dm.cpp
-  gamemodes/dm.h
-  gamemodes/instagib.cpp
-  gamemodes/instagib.h
-  gamemodes/lms.cpp
-  gamemodes/lms.h
-  gamemodes/lts.cpp
-  gamemodes/lts.h
-  gamemodes/solofng.cpp
-  gamemodes/solofng.h
-  gamemodes/openfng.cpp
-  gamemodes/openfng.h
-  gamemodes/tdm.cpp
-  gamemodes/tdm.h
+  gamemodes/fng2.cpp
+  gamemodes/fng2.h
+  gamemodes/fng2_4teams.cpp
+  gamemodes/fng2_4teams.h
+  gamemodes/fng2boom.cpp
+  gamemodes/fng2boom.h
+  gamemodes/fng2boomsolo.cpp
+  gamemodes/fng2solo.cpp
+  gamemodes/fng2solo.h
   gameworld.cpp
   gameworld.h
   player.cpp
