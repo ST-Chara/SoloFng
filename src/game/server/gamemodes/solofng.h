@@ -97,8 +97,7 @@ public:
 	virtual void Snap(int SnappingClient);
 	virtual bool OnEntity(int Index, vec2 Pos, int Layer, int Flags, int Number = 0);
 	virtual void OnCharacterSpawn(class CCharacter *pChr);
-	virtual int OnCharacterDeath(class CCharacter *pVictim,
-	                          class CPlayer *pUnusedKiller, int Weapon);
+	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	//virtual void OnPlayerInfoChange(class CPlayer *pP);
 	//virtual bool CanSpawn(int Team, vec2 *pPos);
 	//virtual const char *GetTeamName(int Team);

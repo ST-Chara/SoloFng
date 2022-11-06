@@ -378,16 +378,79 @@ bool CGameControllerSoloFNG::CanBeMovedOnBalance(int ClientID)
 	
 }
 */
-int CGameControllerSoloFNG::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pUnusedKiller, int Weapon)
+int CGameControllerSoloFNG::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
-	m_aCltMask[pVictim->GetPlayer()->GetTeam()&1] &= ~(1<<pVictim->GetPlayer()->GetCID());
-
-	//IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
-
-	int Cid = pVictim->GetPlayer()->GetCID();
-	if (pVictim->m_FreezeTick > 0 && m_aLastInteraction[Cid] != -1  && Weapon == WEAPON_GAME && CFG(PunishRagequit)) //ragequit
-		Server()->GetClientAddr(Cid, m_aRagequitAddr, sizeof m_aRagequitAddr); //directly adding the ban here causes deadly trouble
-
+	// do scoreing
+	if(!pKiller || Weapon == WEAPON_GAME)
+		return 0;
+	if(pKiller == pVictim->GetPlayer())
+		pVictim->GetPlayer()->m_Stats.m_Selfkills++; // suicide
+	else
+	{
+		if (Weapon == WEAPON_RIFLE || Weapon == WEAPON_GRENADE){
+			if(IsTeamplay() && pVictim->GetPlayer()->GetTeam() == pKiller->GetTeam())
+				pKiller->m_Stats.m_Teamkills++; // teamkill
+			else {
+				pKiller->m_Stats.m_Kills++; // normal kill
+				pVictim->GetPlayer()->m_Stats.m_Hits++; //hits by oponent
+				m_aTeamscore[pKiller->GetTeam()]++; //make this config.?
+			}
+		} else if(Weapon == WEAPON_SPIKE_NORMAL){
+			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeNormal);
+			pKiller->m_Stats.m_GrabsNormal++;
+			pVictim->GetPlayer()->m_Stats.m_Deaths++;
+			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeNormal;
+			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
+		} else if(Weapon == WEAPON_SPIKE_RED){
+			if(pKiller->GetTeam() == TEAM_RED || !IsTeamplay()) {
+				pKiller->m_Stats.m_GrabsTeam++;
+				pVictim->GetPlayer()->m_Stats.m_Deaths++;
+				m_aTeamscore[TEAM_RED] += m_Config.m_SvTeamScoreSpikeTeam;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeTeam);
+			} else {
+				pKiller->m_Stats.m_GrabsFalse++;
+				m_aTeamscore[TEAM_BLUE] += m_Config.m_SvTeamScoreSpikeFalse;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeFalse);
+			}
+			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
+		} else if(Weapon == WEAPON_SPIKE_BLUE){
+			if(pKiller->GetTeam() == TEAM_BLUE || !IsTeamplay()) {
+				pKiller->m_Stats.m_GrabsTeam++;
+				pVictim->GetPlayer()->m_Stats.m_Deaths++;
+				m_aTeamscore[TEAM_BLUE] += m_Config.m_SvTeamScoreSpikeTeam;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeTeam);
+			} else {
+				pKiller->m_Stats.m_GrabsFalse++;
+				m_aTeamscore[TEAM_RED] += m_Config.m_SvTeamScoreSpikeFalse;
+				if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeFalse);
+			}
+			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
+		} else if(Weapon == WEAPON_SPIKE_GREEN){
+			pKiller->m_Stats.m_GrabsGreen++;
+			pVictim->GetPlayer()->m_Stats.m_Deaths++;
+			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGreen;
+			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
+			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeGreen);
+		} else if(Weapon == WEAPON_SPIKE_PURPLE){
+			pKiller->m_Stats.m_GrabsPurple++;
+			pVictim->GetPlayer()->m_Stats.m_Deaths++;
+			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikePurple;
+			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
+			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikePurple);
+		} else if(Weapon == WEAPON_SPIKE_GOLD){
+			pKiller->m_Stats.m_GrabsGold++;
+			pVictim->GetPlayer()->m_Stats.m_Deaths++;
+			m_aTeamscore[pKiller->GetTeam()] += m_Config.m_SvTeamScoreSpikeGold;
+			pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.5f;
+			if(pKiller->GetCharacter()) GameServer()->MakeLaserTextPoints(pKiller->GetCharacter()->m_Pos, pKiller->GetCID(), m_Config.m_SvPlayerScoreSpikeGold);
+		} else if(Weapon == WEAPON_HAMMER){ //only called if team mate unfroze you
+			pKiller->m_Stats.m_Unfreezes++;
+		}
+	}
+	if(Weapon == WEAPON_SELF){
+		pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.75f;
+	} else if (Weapon == WEAPON_WORLD)
+		pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*.75f;
 	return 0;
 }
 
